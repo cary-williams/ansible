@@ -1,0 +1,5 @@
+- include: install_alienvault.yml
+  when: ansible_os_family == 'Debian'
+
+- include: configure_osquery.yml
+  when: ansible_os_family == 'Debian'

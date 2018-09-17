@@ -1,0 +1,28 @@
+---
+- name: Run the equivalent of "apt-get update" as a separate step
+  apt:
+    update_cache: yes
+  become: yes
+  become_user: root
+
+- name: Uninstall NTP
+  apt:
+    name: ntp
+    state: absent
+  become: yes
+  become_user: root
+
+- name: Install Chrony
+  apt:
+    name: chrony
+    state: present
+  become: yes
+  become_user: root
+
+- lineinfile:
+    path: /etc/chrony/chrony.conf
+    line: 'server 169.254.169.123 prefer iburst'
+  become: yes
+  become_user: root
+  notify:
+    - Restart Chrony

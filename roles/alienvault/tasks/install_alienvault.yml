@@ -1,0 +1,31 @@
+---
+- name: Install AlienVault Agent
+  shell: 'CONTROL_NODE_ID={{ alienvault_key }} bash -c "$(curl {{ agent_url }})"'
+  become: yes
+
+- name: Allow access from Agent To rsyslogd
+  lineinfile:
+    path: /etc/rsyslog.d/50-default.conf
+    line: '*.* @{{ alienvault_appliance  }}:514'
+
+- name: Update SysV so that the application service works
+  shell: |
+    systemctl enable osqueryd
+  become: yes
+  become_user: root
+
+- name: Restart osqueryd
+  service:
+    name: osqueryd
+    state: restarted
+    enabled: yes
+  become: yes
+  become_user: root
+
+- name: Restart rsyslog
+  service:
+    name: rsyslog
+    state: restarted
+    enabled: yes
+  become: yes
+  become_user: root

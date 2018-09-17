@@ -1,0 +1,12 @@
+---
+- name: Configure /etc/osquery/osquery.conf
+  template:
+    src: "etc/osquery/osquery.conf.j2"
+    dest: /etc/osquery/osquery.conf
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - configuration
+    - osquery
+    - osquery-configuration
