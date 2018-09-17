@@ -1,0 +1,14 @@
+---
+- name: Install chkrootkit
+  apt:
+    name: chkrootkit
+    update_cache: true
+    state: present
+
+- name: Configure /etc/chkrootkit.conf
+  template:
+    src: "etc/chkrootkit.conf.j2"
+    dest: /etc/chkrootkit.conf
+    owner: root
+    group: root
+    mode: 0644

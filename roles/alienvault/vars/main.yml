@@ -1,0 +1,4 @@
+---
+alienvault_key: " " #insert secret key from alienvault
+alienvault_appliance: " " #insert ip address of your alienvault appliance
+agent_url: "https://prod-api.agent.alienvault.cloud/osquery-api/us-west-2/bootstrap?flavor=deb"
