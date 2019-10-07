@@ -1,0 +1,5 @@
+---
+application_user_shell: /bin/bash
+application_url: http://rundeck.iseatz.com:4440
+application_env: development
+application_packages: []

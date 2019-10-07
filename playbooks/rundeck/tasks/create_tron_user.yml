@@ -1,0 +1,20 @@
+---
+- name: Create Tron User Group
+  group:
+    name: tron
+    state: present
+
+- name: Create Tron User
+  user:
+    name: tron
+    comment: "User for running aplications."
+    home: /home/tron
+    shell: "{{ application_user_shell }}"
+    group: tron
+    groups: "adm,sudo"
+
+- name: Set authorized key for user tron
+  authorized_key:
+    user: tron
+    state: present
+    key: ""
