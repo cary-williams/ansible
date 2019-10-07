@@ -1,0 +1,64 @@
+---
+# See the defaults for OS-specific vars inside the vars/ directory.
+# clamav_packages: []
+# clamav_daemon_config_path: ''
+
+clamav_daemon_configuration_changes:
+  - regexp: '^.*Example$'
+    state: absent
+  - regexp: '^.*LocalSocket .*$'
+    line: 'LocalSocket {{ clamav_daemon_localsocket }}'
+
+# clam group
+clamav_group: "{{ clamav_user }}"
+
+# Log dir permissions (if not /var/log)
+clamav_log_dir_mode: 0770
+
+# Log file permissions
+clamav_log_file_mode: 0660
+
+# DB dir permissions
+clamav_db_dir_mode: 0770
+
+# ClamAV directories
+clamav_log_dir: /var/log/clamav
+
+# Whether to setup Clamd Scan cron job
+clamav_scan_cron: true
+
+# clamav cron run time
+clamav_scan_cron_time: daily
+
+# clamav_daemon: 'clamav-daemon'
+clamav_daemon_state: started
+clamav_daemon_enabled: yes
+
+# Path to the ClamScan log file
+clamav_scan_log_file: "{{ clamav_log_dir }}/clamscan_{{ clamav_scan_cron_time }}.log"
+
+# Command to run as a cron job for the Clamd Scan
+clamav_scan_cron_job: "{{ clamav_scan_command }}"
+
+# clamav_freshclam_daemon: 'clamav-freshclam'
+clamav_freshclam_daemon_state: started
+clamav_freshclam_daemon_enabled: yes
+
+# root path to start scanning
+clamav_scan_root: /
+
+# ClamAV scan options
+clamav_scan_command_options:
+  - --config-file={{ clamav_daemon_config_path }}
+  - --log={{ clamav_scan_log_file }}
+  - --fdpass
+  - --infected
+  - --exclude-dir=/sys/
+  - --exclude-dir=/proc/
+
+# clamAV scan command
+clamav_scan_command: "/usr/bin/clamdscan {{ clamav_scan_command_options | join(' ') }} {{ clamav_scan_root }}"
+
+# Other clamav options
+clamav_clamd_log_file: "clamav.log"
+clamav_freshclam_update_log_file: "{{ clamav_log_dir ~ '/freshclam.log' }}"

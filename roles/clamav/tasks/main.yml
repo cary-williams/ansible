@@ -1,0 +1,108 @@
+---
+- name: Include OS-Specific variables
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- include: setup-vars.yml
+
+- name: Ensure ClamAV packages are installed.
+  package: name={{ item }} state=present
+  with_items: "{{ clamav_packages }}"
+  register: clamav_packages_install
+
+- name: Run freshclam after ClamAV packages change.
+  command: freshclam
+  when: clamav_packages_install.changed
+  register: freshclam_result
+  notify: restart clamav daemon
+  # On Debian, freshclam is automatically run post-install, so this may fail.
+  failed_when:
+    - freshclam_result.rc != 0
+    - freshclam_result.stderr.find('locked by another process') != -1
+
+- include: setup-RedHat.yml
+  when: ansible_os_family == 'RedHat'
+
+- name: Change configuration for the ClamAV daemon.
+  lineinfile:
+    path: "{{ clamav_daemon_config_path }}"
+    regexp: '{{ item.regexp }}'
+    line: "{{ item.line | default('') }}"
+    state: "{{ item.state | default('present') }}"
+  with_items: "{{ clamav_daemon_configuration_changes }}"
+
+- name: Ensure ClamAV daemon is running (if configured).
+  service:
+    name: "{{ clamav_daemon }}"
+    state: "{{ clamav_daemon_state }}"
+    enabled: "{{ clamav_daemon_enabled }}"
+
+- name: Ensure ClamAV freshclam daemon is running (if configured).
+  service:
+    name: "{{ clamav_freshclam_daemon }}"
+    state: "{{ clamav_freshclam_daemon_state }}"
+    enabled: "{{ clamav_freshclam_daemon_enabled }}"
+
+- name: Check if the log directories exist
+  file:
+    path: "{{ clamav_log_dir }}"
+    state: directory
+    mode: "{{ clamav_log_dir_mode }}"
+    owner: "{{ clamav_user }}"
+    group: "{{ clamav_group }}"
+  with_items:
+    - "{{ clamav_clamd_log_file }}"
+    - "{{ clamav_freshclam_update_log_file }}"
+  tags:
+    - clamav_log
+
+- name: Check if Clamd log file exists
+  stat:
+    path: "{{ clamav_clamd_log_file }}"
+  register: clamav_clamd_log_check_result
+  failed_when: false
+  changed_when: false
+
+
+- name: Create Clamd log file if it doesn't exist
+  file:
+    path: "{{ clamav_clamd_log_file }}"
+    state: touch
+    mode: "{{ clamav_log_file_mode }}"
+    owner: "{{ clamav_user }}"
+    group: "{{ clamav_group }}"
+  when: >
+    clamav_clamd_log_check_result is defined and (
+        not clamav_clamd_log_check_result.stat.exists or
+        clamav_clamd_log_check_result.stat.pw_name != clamav_user or
+        clamav_clamd_log_check_result.stat.gr_name != clamav_group
+    )
+
+- name: Check if ClamScan log file exists
+  stat:
+    path: "{{ clamav_scan_log_file }}"
+  register: clamav_scan_log_check_result
+  failed_when: false
+  changed_when: false
+
+
+- name: Create ClamScan log file if it doesn't exist
+  file:
+    path: "{{ clamav_scan_log_file }}"
+    state: touch
+    mode: "{{ clamav_log_file_mode }}"
+    owner: "{{ clamav_user }}"
+    group: "{{ clamav_group }}"
+  when: >
+    clamav_scan_log_check_result is defined and (
+        not clamav_scan_log_check_result.stat.exists or
+        clamav_scan_log_check_result.stat.pw_name != clamav_user or
+        clamav_scan_log_check_result.stat.gr_name != clamav_group
+    )
+
+- name: Set clamd scan cron job
+  cron:
+    name: Clamd Scan
+    special_time: "{{ clamav_scan_cron_time }}"
+    job: "{{ clamav_scan_cron_job }}"
+  when: clamav_scan_cron == true
+
