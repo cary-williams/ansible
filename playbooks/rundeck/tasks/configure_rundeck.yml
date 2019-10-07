@@ -1,0 +1,15 @@
+---
+- name: Rundeck | Configure rundeck
+  lineinfile:
+    dest: /etc/rundeck/rundeck-config.properties
+    state: present
+    backrefs: yes
+    regexp: localhost:4440
+    line: 'grails.serverURL={{ application_url }}'
+- name: Rundeck | Set admin user password
+  lineinfile:
+    dest: /etc/rundeck/realm.properties
+    state: present
+    backrefs: yes
+    regexp: admin:admin
+    line: 'admin:MD5:,user,admin,architect,deploy,build'

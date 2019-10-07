@@ -1,0 +1,5 @@
+---
+- name: Rundeck | Download and Install Rundeck
+  become: yes
+  apt:
+    deb: http://dl.bintray.com/rundeck/rundeck-deb/rundeck_2.11.4-1-GA_all.deb

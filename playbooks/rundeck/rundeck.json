@@ -1,0 +1,67 @@
+{
+  "variables": {
+    "git_ref": "{{env `GIT_REF`}}",
+    "application_env": "{{env `RAILS_ENV`}}"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "us-east-1",
+      "source_ami": "",
+      "instance_type": "t2.small",
+      "ssh_username": "admin",
+      "ami_name": "rundeck{{user `git_ref`}}-{{timestamp}}",
+      "ami_users": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "ami_block_device_mappings": [
+        {
+          "delete_on_termination": true,
+          "device_name": "/dev/xvda",
+          "volume_size": "100",
+          "volume_type": "gp2"
+        }
+      ],
+      "launch_block_device_mappings": [
+        {
+          "delete_on_termination": true,
+          "device_name": "/dev/xvda",
+          "volume_size": "100",
+          "volume_type": "gp2"
+        }
+      ],
+      "vpc_id": "",
+      "subnet_id": "",
+      "security_group_ids": [
+        "",
+        ""
+      ]
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "sudo apt-get update -y",
+        "sudo apt-get install -y python2.7",
+        "sudo apt-get install uuid-runtime",
+        "sudo wget https://bootstrap.pypa.io/get-pip.py",
+        "sudo python get-pip.py",
+        "sudo pip install ansible"
+      ]
+    },
+    {
+      "type": "ansible",
+      "playbook_file": "./rundeck.yml",
+      "user": "admin",
+      "extra_arguments": [
+        "--extra-vars",
+        "application_branch={{user `git_ref`}} application_env={{user `application_env`}}"
+      ]
+    }
+  ]
+}

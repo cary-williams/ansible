@@ -1,0 +1,3 @@
+---
+- name: Rundeck | Start Rundeck
+  command: /etc/init.d/rundeckd restart

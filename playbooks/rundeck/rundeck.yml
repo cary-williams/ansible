@@ -1,0 +1,13 @@
+---
+- hosts: all
+  vars_files:
+  pre_tasks:
+    - include_vars: vars/main.yml
+  roles:
+    - role: application_base
+  tasks:
+    - import_tasks: tasks/create_tron_user.yml
+    - import_tasks: tasks/download_rundeck.yml
+    - import_tasks: tasks/configure_rundeck.yml
+    - import_tasks: tasks/restart_rundeck.yml
+  become: true
